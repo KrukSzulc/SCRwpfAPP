@@ -1,9 +1,9 @@
-﻿using FireSharp;
-using FireSharp.Config;
-using FireSharp.Interfaces;
+﻿
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,26 +25,25 @@ namespace SCRwpfApp
     public partial class MainWindow : Window
     {
 
-        IFirebaseClient client;
 
+        static int id = 0;
+        static Firebase myDAO = new Firebase();
+        //IFirebaseConfig config;
         public MainWindow()
         {
             InitializeComponent();
-            textview.Content = "asdasd";
+            text.Content = myDAO.READ();
+       
         }
 
-
-
-        void initializeFireBase()
+        private void btn_post_Click(object sender, RoutedEventArgs e)
         {
-            IFirebaseConfig config = new FirebaseConfig
-            {
-                AuthSecret = "BIVXBcQRPDF0z0PrtKF5umRUn5R4K31KdrkGvni6MZtWGsCxczFbr8crhqwIFyoRUAQ5jtnOPmi1s-bNjB9HEOM",
-                BasePath = "https://yourfirebase.firebaseio.com/"
-            };
-            client = new FirebaseClient(config);
-
-
+            TaskSCR task = new TaskSCR();
+            task.Name = "zadanie" + id;
+            task.id = id.ToString();
+            task.uuid = id.ToString() + "asdasd";
+            id++;
+            myDAO.POST(task);
         }
     }
 }
