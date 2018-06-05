@@ -168,8 +168,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Firebase.cs" />
-    <Compile Include="FirebaseDAO.cs" />
-    <Compile Include="Task.cs" />
+    <Compile Include="TaskCollection.cs" />
+    <Compile Include="TaskSCR.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -222,6 +222,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">

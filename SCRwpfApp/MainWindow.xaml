@@ -5,10 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SCRwpfApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="SCRTaskManager" Height="859" Width="1138" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
-        <Button x:Name="btn_post" Content="POST" Click="btn_post_Click" Margin="61,80,656,75"/>
-        <Label x:Name="text" Content="Label" HorizontalAlignment="Left" Margin="22,41,0,0" VerticalAlignment="Top" Height="316" Width="743"/>
+        <Button x:Name="btn_post" Content="POST" Click="btn_post_Click" Margin="36,139,875,564"/>
+        <ListView x:Name="listCompleted" Margin="281,43,450,26">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <ListView x:Name="listQueue" HorizontalAlignment="Left" Height="761" Margin="706,43,0,0" VerticalAlignment="Top" Width="399">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Label x:Name="label" Content="Send :" HorizontalAlignment="Left" Margin="314,10,0,0" VerticalAlignment="Top" Width="78"/>
+        <Label x:Name="label_Copy" Content="Receive:" HorizontalAlignment="Left" Margin="715,10,0,0" VerticalAlignment="Top" Width="78"/>
+        <Label x:Name="send_label" Content="0" HorizontalAlignment="Left" Margin="415,10,0,0" VerticalAlignment="Top" Width="78"/>
+        <Label x:Name="receive_label" Content="0" HorizontalAlignment="Left" Margin="793,10,0,0" VerticalAlignment="Top" Width="78"/>
 
     </Grid>
 </Window>
