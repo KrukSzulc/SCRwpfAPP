@@ -13,7 +13,8 @@ namespace SCRwpfApp
     {
         public List<TaskSCR> list = new List<TaskSCR>();
         public List<TaskSCR> listQueue = new List<TaskSCR>();
-        public TaskCollection(string json, bool completed)
+       
+        public void convert(string json, bool completed)
         {
             if (completed)
             {
@@ -29,6 +30,7 @@ namespace SCRwpfApp
                 dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
                 if (data != null)
                 {
+
                     listQueue = ((IDictionary<string, JToken>)data).Select(k => JsonConvert.DeserializeObject<TaskSCR>(k.Value.ToString())).ToList();
 
                 }

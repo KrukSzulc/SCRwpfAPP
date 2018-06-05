@@ -26,6 +26,10 @@ namespace SCRwpfApp
             content = (int)jUser["content"];
             id = (string)jUser["id"];
         }
+        [JsonProperty("a")]
+        public int a { get; set; }
+        [JsonProperty("b")]
+        public int b { get; set; }
         [JsonProperty("content")]
         public int content { get; set; }
         [JsonProperty("id")]

@@ -28,9 +28,11 @@ namespace SCRwpfApp
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        TaskCollection collection = new TaskCollection();
         static int DELAY = 30; // jak długo czeka na wykonanie zadania w Sekundach
+        static int ILOSC = 100; // ilosc liczb
         static int id = 0;
+
         static Firebase myDAO = new Firebase();
         //IFirebaseConfig config;
         public MainWindow()
@@ -46,13 +48,13 @@ namespace SCRwpfApp
             while (true)
             {
                 string result = myDAO.READ();
-                TaskCollection collection = new TaskCollection(result, true);
+                 collection.convert(result, true);
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
                     listCompleted.Items.Clear();
                     foreach (TaskSCR task in collection.list)
                     {
-                        this.listCompleted.Items.Add(task.uuid.ToString());
+                        this.listCompleted.Items.Add(task.uuid.ToString()+"     suma"+task.content);
                     }
                 }));
                 Thread.Sleep(1000);
@@ -62,11 +64,11 @@ namespace SCRwpfApp
             while (true)
             {
                 string resultQueue = myDAO.READQUEUE();
-                TaskCollection collectionQueue = new TaskCollection(resultQueue, false);
+                collection.convert(resultQueue, false);
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                         {
                             listQueue.Items.Clear();
-                            foreach (TaskSCR task in collectionQueue.listQueue)
+                            foreach (TaskSCR task in collection.listQueue)
                             {
                                        TimeSpan span = DateTime.Now.Subtract(task.time);
                                 string time = span.Minutes + ":" + span.Seconds;
@@ -80,17 +82,27 @@ namespace SCRwpfApp
             }
         }
 
-    private void btn_post_Click(object sender, RoutedEventArgs e)
+        private async void btn_post_Click(object sender, RoutedEventArgs e)
         {
-            if (myDAO.CHECKCOUNT())
+            Task.Run(() => add());
+        }
+        public async Task add()
+        {
+            Application.Current.Dispatcher.Invoke(new Action(() =>
             {
-                TaskSCR task = new TaskSCR();
-                task.content = 100+id;
-                task.id = id.ToString();
-                id++;
-                myDAO.POST(task);
-            }
-        
+                for (int i = 0; i < Int32.Parse(numberOfTasks.Text); i++)
+                {
+                    if (myDAO.CHECKCOUNT())
+                    {
+                        TaskSCR task = new TaskSCR();
+                        task.content = 0;
+                        task.a = task.b = 1;
+                        task.id = id.ToString();
+                        id++;
+                        myDAO.POST(task);
+                    }
+                }
+            }));
         }
     }
 }

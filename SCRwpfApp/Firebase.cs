@@ -16,7 +16,8 @@ namespace SCRwpfApp
         public void CHECKTIME(int delay)
         {
            
-                TaskCollection collection = new TaskCollection(READQUEUE(), false);
+                TaskCollection collection = new TaskCollection();
+            collection.convert(READQUEUE(), false);
                 foreach(TaskSCR myTask in collection.list)
                 {
                     TimeSpan span = DateTime.Now.Subtract(myTask.time);
@@ -36,7 +37,9 @@ namespace SCRwpfApp
             {
                 StreamReader read = new StreamReader(responseStream, Encoding.UTF8);
                 string s = read.ReadToEnd();
-                TaskCollection collection = new TaskCollection(s, false);
+                TaskCollection collection = new TaskCollection();
+                collection.convert(s, false);
+               
 
                 if (collection.listQueue.Count >= 10)
                 {
@@ -47,7 +50,7 @@ namespace SCRwpfApp
                     return true;
                 }
             }
-
+            
         }
 
         public TaskSCR GET()
@@ -79,6 +82,8 @@ namespace SCRwpfApp
             {
                 content = task.content,
                 id = "",
+                a = task.a,
+                b = task.b,
                 uuid = task.uuid,
                 time = time,
                 specialUuid = SPECIALUUID,
@@ -96,6 +101,8 @@ namespace SCRwpfApp
             json = (new StreamReader(response.GetResponseStream())).ReadToEnd();
             UPTADEUUID(JsonName.convert(json));
         }
+
+
         public void UPTADE(TaskSCR task) {
             DateTime date = DateTime.Now;
             string time = date.ToString("HH:mm:ss");
