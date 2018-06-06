@@ -18,7 +18,7 @@ namespace SCRwpfApp
            
                 TaskCollection collection = new TaskCollection();
             collection.convert(READQUEUE(), false);
-                foreach(TaskSCR myTask in collection.list)
+                foreach(TaskSCR myTask in collection.listCompletedTasks)
                 {
                     TimeSpan span = DateTime.Now.Subtract(myTask.time);
                     if (span.TotalSeconds>=delay&&myTask.blocked==true)
@@ -41,7 +41,7 @@ namespace SCRwpfApp
                 collection.convert(s, false);
                
 
-                if (collection.listQueue.Count >= 10)
+                if (collection.listReadQueue.Count >= 10)
                 {
                     return false;
                 }
@@ -81,7 +81,7 @@ namespace SCRwpfApp
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(new
             {
                 content = task.content,
-                id = "",
+                id = task.id,
                 a = task.a,
                 b = task.b,
                 uuid = task.uuid,
@@ -102,7 +102,10 @@ namespace SCRwpfApp
             UPTADEUUID(JsonName.convert(json));
         }
 
+        public void DELETE(TaskSCR task)
+        {
 
+        }
         public void UPTADE(TaskSCR task) {
             DateTime date = DateTime.Now;
             string time = date.ToString("HH:mm:ss");
@@ -110,8 +113,9 @@ namespace SCRwpfApp
             {
                 time = time,
                 blocked = false,
-                id = "",
-                specialUuid = "",
+                id = task.id,
+                uuid = "ss",
+                specialUuid = "10",
             });
 
             var request = WebRequest.CreateHttp("https://real-time-systems-project.firebaseio.com/Queue/" + task.uuid + ".json");

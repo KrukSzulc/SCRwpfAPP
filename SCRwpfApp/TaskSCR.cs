@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SCRwpfApp
 {
-    class TaskSCR
+   public class TaskSCR
     {
 
         public TaskSCR()
@@ -24,7 +24,7 @@ namespace SCRwpfApp
             JObject jObject = JObject.Parse(json);
             JToken jUser = jObject["Completed"];
             content = (int)jUser["content"];
-            id = (string)jUser["id"];
+            id = (int)jUser["id"];
         }
         [JsonProperty("a")]
         public int a { get; set; }
@@ -33,7 +33,7 @@ namespace SCRwpfApp
         [JsonProperty("content")]
         public int content { get; set; }
         [JsonProperty("id")]
-        public string id { get; set; }
+        public int id { get; set; }
         [JsonProperty("uuid")]
         public string uuid { get; set; }
         [JsonProperty("specialUuid")]
