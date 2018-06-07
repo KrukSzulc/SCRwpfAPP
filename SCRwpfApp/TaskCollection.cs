@@ -13,6 +13,7 @@ namespace SCRwpfApp
     class TaskCollection
     {
         public List<TaskSCR> listReadQueue = new List<TaskSCR>();
+        public List<TaskSCR> listReadCompleted = new List<TaskSCR>();
 
         public List<TaskSCR> listCompletedTasks = new List<TaskSCR>();
         public List<TaskSCR> tempListCompletedTasks = new List<TaskSCR>();
@@ -113,6 +114,7 @@ namespace SCRwpfApp
                     blockCompletedMutex();
                     listCompletedTasks = ((IDictionary<string, JToken>)data).Select(k =>
                         JsonConvert.DeserializeObject<TaskSCR>(k.Value.ToString())).ToList();
+                 
                     releaseCompletedMutex();
                 }
             }
@@ -126,6 +128,14 @@ namespace SCRwpfApp
 
             }
         }
+        public void convertToRead(string json)
+        { dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
+            if (data != null)
+            {
+                listReadCompleted = ((IDictionary<string, JToken>)data).Select(k =>
+                     JsonConvert.DeserializeObject<TaskSCR>(k.Value.ToString())).ToList();
+            }
+        }
 
 
         public void blockCompletedMutex()
@@ -136,7 +146,7 @@ namespace SCRwpfApp
                 Completed.WaitOne();
                 //   Completed.Enter(ref lockedCompleted);
                 Thread.Sleep(1000);
-                Debug.WriteLine("SPIN LOCKED");
+                Debug.WriteLine("Mutex completed blocked");
             }
             catch
             { 
@@ -145,7 +155,7 @@ namespace SCRwpfApp
         public void releaseCompletedMutex()
         {
           //  if (lockedCompleted) Completed.Exit();
-            Debug.WriteLine("SPIN RELEASE");
+            Debug.WriteLine("completed RELEASE");
              Completed.Dispose();
         }
         public void blockQueueMutex()
@@ -154,7 +164,7 @@ namespace SCRwpfApp
             {
                 //Queue.Enter(ref lockedQueue);
                 //Thread.Sleep(1000);
-                //Debug.WriteLine("SPIN LOCKED");
+                Debug.WriteLine("Queue LOCKED");
                 Queue.WaitOne();
             }
             catch
@@ -166,7 +176,7 @@ namespace SCRwpfApp
         {
 
            // if (lockedQueue) Queue.Exit();
-            Debug.WriteLine("SPIN RELEASE");
+            Debug.WriteLine("Queue RELEASE");
              Queue.Dispose();
         }
         public void blockCompletedTempMutex()
@@ -176,7 +186,7 @@ namespace SCRwpfApp
                 CompletedTemp.WaitOne();
                 //CompletedTemp.Enter(ref lockedCompletedTemp);
                 Thread.Sleep(1000);
-                Debug.WriteLine("SPIN LOCKED");
+                Debug.WriteLine("Temporary Completed LOCKED");
             }
             catch
             {
@@ -186,7 +196,7 @@ namespace SCRwpfApp
         public void releaseCompletedTempMutex()
         {
          //   if (lockedCompletedTemp) CompletedTemp.Exit();
-            Debug.WriteLine("SPIN RELEASE");
+            Debug.WriteLine("temporary completed RELEASE");
             CompletedTemp.Dispose();
         }
         public void blockQueueTempMutex()
@@ -196,7 +206,7 @@ namespace SCRwpfApp
                 QueueTemp.WaitOne();
                 //QueueTemp.Enter(ref lockedQueueTemp);
                 Thread.Sleep(1000);
-                Debug.WriteLine("SPIN LOCKED");
+                Debug.WriteLine("temporary queue LOCKED");
             }
             catch
             {
@@ -206,7 +216,7 @@ namespace SCRwpfApp
         public void releaseQueueTempMutex()
         {
           //  if (lockedQueueTemp) QueueTemp.Exit();
-            Debug.WriteLine("SPIN RELEASE");
+            Debug.WriteLine("temporary queue RELEASE");
             QueueTemp.Dispose();
         }
     }
