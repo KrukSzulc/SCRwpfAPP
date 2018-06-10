@@ -112,6 +112,7 @@ namespace SCRwpfApp
                 if (data != null)
                 {
                     blockCompletedMutex();
+
                     listCompletedTasks = ((IDictionary<string, JToken>)data).Select(k =>
                         JsonConvert.DeserializeObject<TaskSCR>(k.Value.ToString())).ToList();
                  
@@ -122,9 +123,17 @@ namespace SCRwpfApp
             {
                 dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
                 if (data != null)
-                {     
-                    listReadQueue = ((IDictionary<string, JToken>)data).Select(k => JsonConvert.DeserializeObject<TaskSCR>(k.Value.ToString())).ToList();  
-                }
+                {
+                    try
+                    {
+                        listReadQueue = ((IDictionary<string, JToken>)data).Select(k => JsonConvert.DeserializeObject<TaskSCR>(k.Value.ToString())).ToList();
+                    }
+                    catch(Exception e)
+                    {
+                        Debug.WriteLine(e.ToString());
+                    }
+
+                    }
 
             }
         }

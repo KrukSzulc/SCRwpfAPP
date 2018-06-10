@@ -18,21 +18,7 @@ namespace SCRwpfApp
         Mutex readMutex = new Mutex();
         Mutex generalMutex = new Mutex();
         string SPECIALUUID = "";
-        public void CHECKTIME(int delay)
-        {
-           
-                TaskCollection collection = new TaskCollection();
-            collection.convert(READQUEUE(), false);
-                foreach(TaskSCR myTask in collection.listCompletedTasks)
-                {
-                    TimeSpan span = DateTime.Now.Subtract(myTask.time);
-                    if (span.TotalSeconds>=delay&&myTask.blocked==true)
-                    {
-                        UPTADE(myTask);
-                
-                    }
-                }
-         }
+
         public bool CHECKCOUNT()
         {
             var request = (HttpWebRequest)WebRequest.CreateHttp("https://real-time-systems-project.firebaseio.com/Queue/.json");
@@ -58,29 +44,6 @@ namespace SCRwpfApp
             
         }
 
-        public TaskSCR GET()
-        {
-            throw new NotImplementedException();
-        }
-        public void POSTUUID(TaskSCR task)
-        {
-            blockgeneralMutex();
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(new
-            {
-                uuid = task.uuid,
-            });
-
-            var request = WebRequest.CreateHttp("https://real-time-systems-project.firebaseio.com/Queue/.json");
-            request.Method = "POST";
-
-            request.ContentType = "application/json";
-            var buffer = Encoding.UTF8.GetBytes(json);
-            request.ContentLength = buffer.Length;
-            request.GetRequestStream().Write(buffer, 0, buffer.Length);
-            var response = request.GetResponse();
-            json = (new StreamReader(response.GetResponseStream())).ReadToEnd();
-            releasegeneralMutex();
-        }
         public void POST(TaskSCR task)
         {
             blockgeneralMutex();
@@ -112,26 +75,7 @@ namespace SCRwpfApp
             releasegeneralMutex();
         }
 
-        public void DELETE(TaskSCR task)
-        {
-          //  blockgeneralMutex();
-            var request = WebRequest.CreateHttp("https://real-time-systems-project.firebaseio.com/Completed/" + task.uuid + ".json");
-            request.Method = "DELETE";
-            request.ContentType = "application/json";
-            var response = request.GetResponse();
-
-
-            //    releasegeneralMutex();
-
-            // var request = WebRequest.CreateHttp("https://real-time-systems-project.firebaseio.com/Completed/" + task.uuid + ".json");
-            //request.Method = "PATCH";
-            // request.ContentType = "application/json";
-            // request.GetRequestStream().Write(null, 0, 1);
-            // var response = request.GetResponse();
-            //json = (new StreamReader(response.GetResponseStream())).ReadToEnd();
-        
-        }
-
+     
 
         public void UPTADE(TaskSCR task) {
             DateTime date = DateTime.Now;
@@ -142,6 +86,10 @@ namespace SCRwpfApp
                 blocked = false,
                 id = task.id,
                 specialUuid = "",
+                content = task.content,
+                uuid = task.uuid,
+                a = task.a,
+                b = task.b,
             });
 
             var request = WebRequest.CreateHttp("https://real-time-systems-project.firebaseio.com/Queue/" + task.uuid + ".json");
@@ -153,7 +101,7 @@ namespace SCRwpfApp
             var response = request.GetResponse();
             json = (new StreamReader(response.GetResponseStream())).ReadToEnd();
         }
-        public void UPTADECOMPL(TaskSCR task)
+        public void DELETE(TaskSCR task)
         {
             DateTime date = DateTime.Now;
             string time = date.ToString("HH:mm:ss");
@@ -245,24 +193,7 @@ namespace SCRwpfApp
         {
             readMutex.Dispose();
         }
-        public void blockReadMutex()
-        {
-            // Completed.WaitOne();
-            try
-            {
-                readMutex.WaitOne();
-                Thread.Sleep(1000);
-    
-            }
-            catch
-            {
-            }
-        }
-        public void releaseReadMutex()
-        {
-     
-            readMutex.Dispose();
-        }
+  
     }
 
     class JsonName

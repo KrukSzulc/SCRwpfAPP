@@ -1,26 +1,11 @@
 ﻿
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace SCRwpfApp
@@ -35,26 +20,26 @@ namespace SCRwpfApp
         TaskCollection collection = new TaskCollection();
         static int DELAY = 30; // jak długo czeka na wykonanie zadania w Sekundach
         static int ILOSC = 6; // ilosc liczb  // jak zostaje 1 completed i 1 zadanie to robi zadaniedodaje do completed i zawsze zostaje 1 nieskonczona petla
-        static int ILOSCZADAN = 50;
-        static int DELAYREFRESH = 1500;
+        static int ILOSCWYKONANYCH = 0;
+        static int DELAYREFRESH = 200; // jak czesto odswieza liste i wysyla zapytania o dane
+        static int DELAYTIMER = 1000;
+        static int DELAYCOMPLETED = 5000; // jak dluggo ma czekac w przypadku gdy jest jedno completed
         static int id = 0;
+     //   static int counterToEnd = 0;
+        static int again = 0;
         List<Thread> threads = new List<Thread>();
         static Firebase myDAO = new Firebase();
-        //IFirebaseConfig config;
+   
         public MainWindow()
         {
             InitializeComponent();
             createTASKS();
              
-           // Task.Run(() => loadCompletedTasks());
-           // Task.Run(() => loadQueueTasks());
-           // Task.Run(() => pushTASKS());
-           // startTimer();
+       
             threads.Add(new Thread(pushTASKS));
             threads.Add(new Thread(createFromCompletedTasks));
-          //  threads.Add(new Thread(loadCompletedList));
+           threads.Add(new Thread(loadCompletedList));
             threads.Add(new Thread(loadQueueTasks));
-            //threads.Add(new Thread(startTimer));
             startTimer();
             foreach (Thread thread in threads)
             {
@@ -66,32 +51,32 @@ namespace SCRwpfApp
         {
             System.Timers.Timer aTimer = new System.Timers.Timer();
             aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-            aTimer.Interval = 1000;
+            aTimer.Interval = DELAYTIMER;
             aTimer.Enabled = true;
-            //var timer = new DispatcherTimer();
-            //timer.Interval = TimeSpan.FromSeconds(1);
-            //timer.Tick += new EventHandler(async (object s, EventArgs a) =>
-            //{
-
-            //    OnTimedEvent(s,a);
-
-            //});
-            //timer.Start();
+       
         }
 
         private void OnTimedEvent(object s, EventArgs a)
         {
-            Debug.WriteLine("lalala");
+          
             List<TaskSCR> tempList = collection.listReadCompleted;
             Dispatcher.Invoke(() =>
             {
                 listCompleted.Items.Clear();
                 foreach (TaskSCR task in tempList)
                 {
-                    this.listCompleted.Items.Add(task.uuid.ToString() + "     suma" + task.content);
+                    this.listCompleted.Items.Add(task.uuid.ToString() + "  suma: " + task.content);
                 }
             });
-                Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
+            {
+                send_label.Content = ILOSC;
+                    });
+            Dispatcher.Invoke(() =>
+            {
+                receive_label.Content = ILOSCWYKONANYCH;
+            });
+            Dispatcher.Invoke(() =>
                 {
                     listQueue.Items.Clear();
                 List<TaskSCR> myTempList = collection.listReadQueue;
@@ -99,7 +84,7 @@ namespace SCRwpfApp
                 {
                     TimeSpan span = DateTime.Now.Subtract(task.time);
                     string time = span.Minutes + ":" + span.Seconds;
-                    this.listQueue.Items.Add(task.uuid.ToString() + "   time: " + time);
+                    this.listQueue.Items.Add(task.uuid.ToString() + "     liczby:  "+task.a.ToString()+", "+task.b.ToString()+"  time: " + time);
                 }
             });
         }
@@ -118,83 +103,56 @@ namespace SCRwpfApp
             {
                 try
                 {
-                 
-                    List<TaskSCR> tempList = collection.getCompletedList(true);
-                    if (tempList.Count < 2)
-                    {
-                        List<TaskSCR> list = collection.getCompletedList(false);
-                        string result = myDAO.READ2();
-                        collection.releaseCompletedMutex();
-                        collection.convert(result, true);
-                        collection.releaseCompletedMutex();
-                        collection.setList(list, tempList);
+                   
+                    string result = myDAO.READ2();
+                    collection.convert(result, true);
+                    collection.releaseCompletedMutex();
 
+                    List<TaskSCR> list = collection.getCompletedList(false);
+                    if (list.Count < 2)
+                    {
+                        if (again==2)  // Sprawdza szybciej czy jest zadanie niż są one wykonywane na telefonie, więc jeśli jest 1 sprawdza po 1s. czy dalej jest jedno
+                        {
+
+                            MessageBox.Show("Suma: "+list[0].content);
+
+                            foreach (Thread thread in threads)
+                            {
+                                thread.Abort();
+                            }
+                            //TaskSCR newTask = createTask(list[0].content, 0, list[0].id+1);
+                            //ILOSC++;
+                            //ILOSCWYKONANYCH++;
+                            //myDAO.DELETE(list[0]);
+                            //list.RemoveAt(0);
+                            //again = false;
+
+                            //collection.addQueueList(newTask, false);
+                        }
+                        else
+                        {
+                            again++;
+                            Thread.Sleep(5000);
+                        }
                     }
-                           
-           //         if (tempList.Count > 2)
                     else
                     {
+                        again = 0;
+                        TaskSCR newTask = createTask(list[0].content, list[1].content, list[0].id+1);
+                        ILOSC++;
+                        ILOSCWYKONANYCH += 2;
+                        myDAO.DELETE(list[0]);
+                        myDAO.DELETE(list[1]);
 
-                        Debug.WriteLine("wykonujeeee wykonujeeeewykonujeeeewykonujeeeewykonujeeeewykonujeeeewykonujeeee");
-                        TaskSCR newTask = createTask(tempList[0].content, tempList[1].content, id);
+                        list.RemoveAt(1);
+                        list.RemoveAt(0);
+
                         collection.addQueueList(newTask, false);
-                        // myDAO.DELETE(tempList[0]);
-                        //Thread.Sleep(500);
-                        // myDAO.DELETE(tempList[1]);
-                        //Thread.Sleep(500);
-
-
-                        tempList[0].blocked = false;
-                        myDAO.UPTADECOMPL(tempList[0]);
-                        tempList.RemoveAt(0);
-                        tempList[0].blocked = false;
-                        myDAO.UPTADECOMPL(tempList[0]);
-                        tempList.RemoveAt(0);
-                      
-
-                        
-                     
                     }
+                    collection.releaseCompletedMutex();
+                    Thread.Sleep(300);
 
 
-                        //    Debug.WriteLine("my masssage blocked : -1");
-                        //    if (collection.getCompletedList(false).Count <= 2)
-                        //    {
-
-                        //        string result = myDAO.READ2();
-                        //        collection.convert(result, true);
-                        //    }
-                        //    collection.releaseCompletedMutex();
-                        ////    myDAO.releaseReadMutex();
-
-
-                        //    collection.setList(collection.getCompletedList(false), collection.getCompletedList(true));
-                        //    collection.releaseCompletedMutex(); collection.releaseCompletedTempMutex();    
-                        //    Debug.WriteLine("my masssage blocked : 0.5");
-                        //    List<TaskSCR> tempList = collection.getCompletedList(true);
-                        //    Debug.WriteLine("my masssage blocked : 1");
-                        //    //    if (tempList.Select(x => x.id == id).Count() > 2)
-                        //    if(tempList.Count>2)
-                        //    {
-                        //        Debug.WriteLine("my masssage blocked : 2");
-                        //        TaskSCR newTask = createTask(tempList[0].content, tempList[1].content, tempList[0].id);
-
-                        //        Debug.WriteLine(newTask.a + " sdads" + newTask.b);
-
-                        //        collection.addQueueList(newTask, false); //todo tu zatrzymuje
-                        //        Debug.WriteLine("my masssage blocked : 3");
-                        //        //  collection.releaseQueueMutex();
-                        //        List<TaskSCR> listCompleted = collection.getCompletedList(false);
-                        //        Debug.WriteLine("my masssage blocked : 4");
-                        //        myDAO.DELETE(tempList[0]);
-                        //        myDAO.DELETE(tempList[1]);
-                        //        Debug.WriteLine("my masssage blocked : 5");
-                        //        listCompleted.Remove(tempList[0]);
-                        //        listCompleted.Remove(tempList[1]);
-                        //        Debug.WriteLine("my masssage blocked : 6");
-                        //        tempList.Clear();
-                        //    }
-                        //    collection.releaseCompletedTempMutex(); collection.releaseCompletedMutex();
                 }
                 catch (Exception e)
                 {
@@ -202,6 +160,59 @@ namespace SCRwpfApp
                 }
 
             }
+
+            //        List<TaskSCR> tempList = collection.getCompletedList(true);
+            //        List<TaskSCR> list = collection.getCompletedList(false);
+            //        string result = myDAO.READ2();
+            //        collection.releaseCompletedMutex();
+            //        collection.convert(result, true);
+            //        collection.setList(list, tempList);
+            //        collection.releaseCompletedMutex();
+
+            //        if (tempList.Count < 2)
+            //        {
+            //            if (again)  /// Sprawdza szybciej czy jest zadanie niż są one wykonywane na telefonie, więc jeśli jest 1 sprawdza po 1s. czy dalej jest jedno
+            //            {
+            //                TaskSCR newTask = createTask(tempList[0].content, 0, id);
+
+
+            //                myDAO.DELETE(tempList[0]);
+            //                tempList.RemoveAt(0);
+            //                again = false;
+
+            //                collection.addQueueList(newTask, false);
+            //            }
+            //            else
+            //            {
+            //                again = true;
+            //                Thread.Sleep(2000);
+
+            //            }
+            //        }
+            //        else
+            //        {
+            //            again = false;
+            //            TaskSCR newTask = createTask(tempList[0].content, tempList[1].content, id);
+
+
+            //            myDAO.DELETE(tempList[0]);
+            //            myDAO.DELETE(tempList[1]);
+            //            tempList.RemoveAt(1);
+            //            tempList.RemoveAt(0);
+
+            //            collection.addQueueList(newTask, false);
+            //        }
+            //        collection.releaseCompletedTempMutex();
+            //        Thread.Sleep(300);
+
+
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Debug.WriteLine("my massage is : " + e.Message.ToString());
+            //    }
+
+            //}
 
         }
      
@@ -223,7 +234,7 @@ namespace SCRwpfApp
                    
                     foreach (TaskSCR myTask in tempList)
                     {
-                        if (myTask.id == id && myDAO.CHECKCOUNT())
+                        if (myDAO.CHECKCOUNT())
                         {
                             list.Remove(myTask);
                             myDAO.POST(myTask);
@@ -282,34 +293,6 @@ namespace SCRwpfApp
                   //      }));
 
             }
-        }
-
-        private void btn_post_Click(object sender, RoutedEventArgs e)
-        {
-          
-            for (int i = 0; i < Int32.Parse(numberOfTasks.Text); i++)
-            {
-               // tempTasks.Add(createTask(1, 1, 0));
-            }
-      
-            }
-        public async Task add()
-        {
-            Application.Current.Dispatcher.Invoke(new Action(() =>
-            {
-                for (int i = 0; i < Int32.Parse(numberOfTasks.Text); i++)
-                {
-                    if (myDAO.CHECKCOUNT())
-                    {
-                        TaskSCR task = new TaskSCR();
-                        task.content = 0;
-                        task.a = task.b = 1;
-                        task.id = id;
-                        task.uuid = "ss";
-                        myDAO.POST(task);
-                    }
-                }
-            }));
         }
         public TaskSCR createTask(int a, int b, int ID)
         {
