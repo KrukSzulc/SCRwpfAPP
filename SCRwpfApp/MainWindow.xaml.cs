@@ -19,8 +19,9 @@ namespace SCRwpfApp
     {
         TaskCollection collection = new TaskCollection();
         static int DELAY = 30; // jak długo czeka na wykonanie zadania w Sekundach
-        static int ILOSC = 6; // ilosc liczb  // jak zostaje 1 completed i 1 zadanie to robi zadaniedodaje do completed i zawsze zostaje 1 nieskonczona petla
+        static int ILOSC = 28; // ilosc liczb  // jak zostaje 1 completed i 1 zadanie to robi zadaniedodaje do completed i zawsze zostaje 1 nieskonczona petla
         static int ILOSCWYKONANYCH = 0;
+        static int ILOSCZADAN = 0;
         static int DELAYREFRESH = 200; // jak czesto odswieza liste i wysyla zapytania o dane
         static int DELAYTIMER = 1000;
         static int DELAYCOMPLETED = 5000; // jak dluggo ma czekac w przypadku gdy jest jedno completed
@@ -70,7 +71,7 @@ namespace SCRwpfApp
             });
             Dispatcher.Invoke(() =>
             {
-                send_label.Content = ILOSC;
+                send_label.Content = ILOSCZADAN;
                     });
             Dispatcher.Invoke(() =>
             {
@@ -138,8 +139,7 @@ namespace SCRwpfApp
                     else
                     {
                         again = 0;
-                        TaskSCR newTask = createTask(list[0].content, list[1].content, list[0].id+1);
-                        ILOSC++;
+                        TaskSCR newTask = createTask(list[0].content, list[1].content, list[0].id+1); 
                         ILOSCWYKONANYCH += 2;
                         myDAO.DELETE(list[0]);
                         myDAO.DELETE(list[1]);
@@ -236,6 +236,7 @@ namespace SCRwpfApp
                     {
                         if (myDAO.CHECKCOUNT())
                         {
+                            ILOSCZADAN++;
                             list.Remove(myTask);
                             myDAO.POST(myTask);
                         }
